@@ -10683,20 +10683,19 @@ top
     zsoelim(1) - satisfy .so requests in roff input
 """
 
-regex = re.compile(r"\s+([\w\d_]+)\((\d)(\w?)\)", re.IGNORECASE)
-
-from collections import OrderedDict
+regex = re.compile(r"\s+([\w\d\-_\.]+)\((\d)(\w?)\)", re.IGNORECASE)
 
 MANPAGE = filter(lambda x: x,
                  map(lambda x: re.search(regex, x),
                      MANPAGE.split("\n")))
 
-def create_link(name, num, suffix):
-    return (name, f"http://man7.org/linux/man-pages/man{num}/{name}.{num}{suffix}.html")
+def create_link(n, d, suffix):
+    """ Creates a link from the name of the manpage.
+
+    This hasn't been tested extensively, as there are 10k+ links... but it's
+    worked for the handful that I tried?
+    """
+    return (n, f"http://man7.org/linux/man-pages/man{d}/{n}.{d}{suffix}.html")
 
 results = dict(map(lambda x: create_link(*x.groups()), MANPAGE))
-# result = OrderedDict()
-# for k, v in results:
-#     result[k] = v
-
 pprint(results, open("output", "w"))
