@@ -8,6 +8,7 @@ from   flask import request, jsonify
 import requests as curl
 
 from . import app, SLACK_OAUTH_TOKEN
+from .links import MANPAGE_MAPPING
 
 
 COMMAND_PATTERN = r"man (\w+)"
@@ -110,17 +111,16 @@ def on_app_mention(js):
     #
     # https://slack.com/api/chat.postMessage
     if matches is None:
-        message = "No `man` page found for query."
+        message = "Invalid query; use the form `man [function]` :nerd_face:"
     else:
         query = matches.groups()[0]
-        url = f"http://man7.org/linux/man-pages/man2/{query}.2.html"
-        message = f"`man {query}`: {url}"
 
-        result = curl.get(url)
-        pprint(url)
-        pprint(result.status_code)
-        if result.status_code != curl.codes.ok:
-            message = f"No `man` page found for: {query}."
+        message = f"No `man` page found for: {query}."
+        if query in MANPAGE_MAPPING:
+            url = MANPAGE_MAPPING[query]
+            result = curl.get(url)
+            if result.status_code == curl.codes.ok:
+                message = f"`{query}`: {url}"
 
         curl.post(
             "https://slack.com/api/chat.postMessage",
