@@ -4,10 +4,11 @@ import json
 import functools
 from   pprint import pprint
 
-from flask import request, jsonify
+from   flask import request, jsonify
 import requests as curl
 
-from . import app
+from . import app, SLACK_OAUTH_TOKEN
+
 
 COMMAND_PATTERN = r"man (\w+)"
 COMMAND_REGEX = re.compile(COMMAND_PATTERN, re.IGNORECASE)
@@ -96,7 +97,6 @@ def on_app_mention(js):
         }
     """
     event = js["event"]
-    pprint(event)
 
     # The only types of commands that are supported contain the pattern:
     #       man [function name]
@@ -109,30 +109,34 @@ def on_app_mention(js):
     # it doesn't, indicate that!
     #
     # https://slack.com/api/chat.postMessage
-    pprint(matches)
-
     if matches is None:
         message = "No `man` page found for query."
     else:
         query = matches.groups()[0]
-        result = f"http://man7.org/linux/man-pages/man2/{query}.2.html"
-        message = f"`man {query}`: {result}"
+        url = f"http://man7.org/linux/man-pages/man2/{query}.2.html"
+        message = f"`man {query}`: {url}"
 
-    curl.post(
-        "https://slack.com/api/chat.postMessage",
-        headers={
-            "Authorization": "Bearer " + js["token"],
-            "Content-Type": "application/json",
-        },
-        json={
-            "username": "Man Bot :nerd_face:"
-            "channel": event["channel"],
-            "text": message,
-            "unfurl_links": False,
-        }
-    )
+        result = curl.get(url)
+        pprint(url)
+        pprint(result.status_code)
+        if result.status_code != curl.codes.ok:
+            message = f"No `man` page found for: {query}."
 
-    pprint(message)
+        curl.post(
+            "https://slack.com/api/chat.postMessage",
+            headers={
+                "Authorization": "Bearer " + SLACK_OAUTH_TOKEN,
+                "Content-Type": "application/json",
+            },
+            json={
+                "username": "Man Bot",
+                "icon_emoji": ":computer:",
+                "channel": event["channel"],
+                "text": message,
+                "unfurl_links": False,
+            }
+        )
+
     return {"message": message}, 200
 
 def on_event(js):
