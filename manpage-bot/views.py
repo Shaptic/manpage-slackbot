@@ -2,16 +2,16 @@
 import re
 import json
 import functools
+from   pprint import pprint
 
-from flask import request
+from flask import request, jsonify
 
 from . import app
 
 
 def get_js(**kwargs):
     js = request.get_json(**kwargs)
-    if js is None:
-        raise TypeError("empty payload")
+    if js is None: return False
     if not isinstance(js, dict):
         js = json.loads(js)     # wtf tbh?
     return js
@@ -34,16 +34,39 @@ def json_endpoint(view_fn):
             elif "error" not in rv:
                 rv["error"] = "An error occurred."
 
-        if not isinstance(rv, str): rv = json.dumps(rv)
-        return rv, errno
+        rv["code"] = errno
+        return jsonify(rv), errno
 
     return wrapper
 
+@app.route("/", methods=["GET"])
+def index():
+    """ Displays a generic message.
+    """
+    return "Hey, you're not a Slack event...", 200
 
-@app.route("/api/v1/manpage", methods=["GET"])
+@app.route("/api/v1/action", methods=["POST"])
 @json_endpoint
-def get_manpage():
-    """ Responds to an `app_mention` event from Slack.
+def process_event():
+    """ Responds to a Slack events.
+    """
+    js = get_js()
+    pprint(js)
+
+    if js is False or "type" not in js:
+        return {"message": "Request doesn't appear to be a Slack event!"}, 200
+
+    return handlers.get(js["type"], on_event_failure)(js)
+
+def on_challenge(js):
+    """ Responds with the 'challenge' parameter.
+
+    https://api.slack.com/events/url_verification
+    """
+    return { "challenge": js["challenge"] }, 200
+
+def on_app_mention(js):
+    """ Processes an `app_mention` event from Slack.
 
         {
             "type": "app_mention",
@@ -54,13 +77,13 @@ def get_manpage():
             "event_ts": "1515449522000016"
         }
     """
-    js = get_js()
-    print(js)
+    return on_event_failure(js)
 
-    if "type" not in js: return {}, 400
-
-    # https://api.slack.com/events/url_verification
-    if js["type"] == "url_verification":
-        return { "challenge": js["challenge"] }, 200
-
+def on_event_failure(js):
     return {"message": "NotImplemented"}, 200
+
+
+handlers = {
+    "url_verification": on_challenge,
+    "app_mention": on_app_mention,
+}
