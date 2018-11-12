@@ -8,7 +8,7 @@ from   flask import request, jsonify
 import requests as curl
 
 from . import app, SLACK_OAUTH_TOKEN
-from .links import MANPAGE_MAPPING
+from .links import ERRNO_STRINGS, MANPAGE_MAPPING
 
 
 COMMAND_PATTERN = r"man (\w+)"
@@ -121,6 +121,17 @@ def on_app_mention(js):
             result = curl.get(url)
             if result.status_code == curl.codes.ok:
                 message = f"`{query}`: {url}"
+
+                append = ""
+                for anchor, matches in {
+                    "#RETURN_VALUE": ("return value", "rv", "returns"),
+                    "#ERRORS": ERRNO_STRINGS + ["error", "errno"],
+                    "#NOTES": ("notes", )
+                }.items():
+                    if any(map(lambda m: event["text"].lower().find(m) != -1, matches)):
+                        append = anchor
+
+                message += append
 
         curl.post(
             "https://slack.com/api/chat.postMessage",

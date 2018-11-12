@@ -1,3 +1,10 @@
+import os
+import errno
+
+ERRNO_STRINGS = [
+    os.strerror(x).lower() for x in errno.errorcode.keys()
+]
+
 MANPAGE_MAPPING = {
  '.ldaprc': 'http://man7.org/linux/man-pages/man5/.ldaprc.5.html',
  '30-systemd-environment-d-generator': 'http://man7.org/linux/man-pages/man8/30-systemd-environment-d-generator.8.html',
