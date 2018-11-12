@@ -56,4 +56,11 @@ def get_manpage():
     """
     js = get_js()
     print(js)
-    return "{}"
+
+    if "type" not in js: return {}, 400
+
+    # https://api.slack.com/events/url_verification
+    if js["type"] == "url_verification":
+        return { "challenge": js["challenge"] }, 200
+
+    return {"message": "NotImplemented"}, 200
