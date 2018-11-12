@@ -5,8 +5,12 @@ import functools
 from   pprint import pprint
 
 from flask import request, jsonify
+import requests as curl
 
 from . import app
+
+COMMAND_PATTERN = r"man (\w+)"
+COMMAND_REGEX = re.compile(COMMAND_PATTERN, re.IGNORECASE)
 
 
 def get_js(**kwargs):
@@ -45,7 +49,7 @@ def index():
     """
     return "Hey, you're not a Slack event...", 200
 
-@app.route("/api/v1/action", methods=["POST"])
+@app.route("/api/v1/action", methods=["GET", "POST"])
 @json_endpoint
 def process_event():
     """ Responds to a Slack events.
@@ -68,22 +72,81 @@ def on_challenge(js):
 def on_app_mention(js):
     """ Processes an `app_mention` event from Slack.
 
+    Full event structure for the "happy path," i.e. someone mentioning the bot
+    directly in a channel that it already exists in.
+
         {
-            "type": "app_mention",
-            "user": "U061F7AUR",
-            "text": "<@U0LAN0Z89> is it everything a river should be?",
-            "ts": "1515449522.000016",
-            "channel": "C0LAN2Q65",
-            "event_ts": "1515449522000016"
+            "token": "ZZZZZZWSxiZZZ2yIvs3peJ",
+            "team_id": "T061EG9R6",
+            "api_app_id": "A0MDYCDME",
+            "event": {
+                "type": "app_mention",
+                "user": "U061F7AUR",
+                "text": "What is the hour of the pearl, <@U0LAN0Z89>?",
+                "ts": "1515449522.000016",
+                "channel": "C0LAN2Q65",
+                "event_ts": "1515449522000016"
+            },
+            "type": "event_callback",
+            "event_id": "Ev0LAN670R",
+            "event_time": 1515449522000016,
+            "authed_users": [
+                "U0LAN0Z89"
+            ]
         }
     """
-    return on_event_failure(js)
+    event = js["event"]
+    pprint(event)
+
+    # The only types of commands that are supported contain the pattern:
+    #       man [function name]
+    #
+    # The function name is one word, potentially with underscores. Where the
+    # actual mention of the bot occurs is irrelevant.
+    matches = re.search(COMMAND_REGEX, event["text"])
+
+    # Respond with a message linking to the requested man page, if it exists. If
+    # it doesn't, indicate that!
+    #
+    # https://slack.com/api/chat.postMessage
+    pprint(matches)
+
+    if matches is None:
+        message = "No `man` page found for query."
+    else:
+        query = matches.groups()[0]
+        result = f"http://man7.org/linux/man-pages/man2/{query}.2.html"
+        message = f"`man {query}`: {result}"
+
+    curl.post(
+        "https://slack.com/api/chat.postMessage",
+        headers={
+            "Authorization": "Bearer " + js["token"],
+            "Content-Type": "application/json",
+        },
+        json={
+            "username": "Man Bot :nerd_face:"
+            "channel": event["channel"],
+            "text": message,
+            "unfurl_links": False,
+        }
+    )
+
+    pprint(message)
+    return {"message": message}, 200
+
+def on_event(js):
+    """ Extracts the inner event structure from a generic event.
+    """
+    event = js["event"]
+    return handlers.get(event["type"], on_event_failure)(js)
 
 def on_event_failure(js):
     return {"message": "NotImplemented"}, 200
 
 
 handlers = {
+    "event_callback": on_event,
     "url_verification": on_challenge,
     "app_mention": on_app_mention,
 }

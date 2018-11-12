@@ -1,12 +1,17 @@
+certifi==2018.10.15
+chardet==3.0.4
 Click==7.0
 dnspython==1.15.0
 eventlet==0.24.1
 Flask==1.0.2
 greenlet==0.4.15
 gunicorn==19.9.0
+idna==2.7
 itsdangerous==1.1.0
 Jinja2==2.10
 MarkupSafe==1.1.0
 monotonic==1.5
+requests==2.20.1
 six==1.11.0
+urllib3==1.24.1
 Werkzeug==0.14.1
