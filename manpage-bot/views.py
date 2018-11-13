@@ -1,6 +1,7 @@
 #! /usr/bin/env python3.7
 import re
 import json
+import time
 import functools
 from   pprint import pprint
 
@@ -11,8 +12,9 @@ from . import app, SLACK_OAUTH_TOKEN
 from .links import ERRNO_STRINGS, MANPAGE_MAPPING
 
 
-COMMAND_PATTERN = r"man (\w+)"
+COMMAND_PATTERN = r"\bman (\w+)"
 COMMAND_REGEX = re.compile(COMMAND_PATTERN, re.IGNORECASE)
+SEEN_EVENTS = []
 
 
 def get_js(**kwargs):
@@ -118,18 +120,31 @@ def on_app_mention(js):
         message = f"No `man` page found for: {query}."
         if query in MANPAGE_MAPPING:
             url = MANPAGE_MAPPING[query]
+
+            # Check the requests we've served so we don't re-query... Kind of a
+            # hack... necessary to not be spammy when Heroku "fresh start"s us.
+            #
+            # I'm way too lazy to make this thread-safe lol.
+            global SEEN_EVENTS
+            if js["event_id"] in SEEN_EVENTS:
+                return {"message": "We've already responded to this..."}, 304
+            else:
+                SEEN_EVENTS.append(js["event_id"])
+                SEEN_EVENTS = SEEN_EVENTS[-10:]
+
             result = curl.get(url)
             if result.status_code == curl.codes.ok:
                 message = f"`{query}`: {url}"
 
                 append = ""
                 for anchor, matches in {
-                    "#RETURN_VALUE": ("return value", "rv", "returns"),
+                    "#RETURN_VALUE": ("return value", " rv ", "returns"),
                     "#ERRORS": ERRNO_STRINGS + ["error", "errno"],
                     "#NOTES": ("notes", )
                 }.items():
                     if any(map(lambda m: event["text"].lower().find(m) != -1, matches)):
                         append = anchor
+                        break
 
                 message += append
 
