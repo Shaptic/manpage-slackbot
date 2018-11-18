@@ -6764,7 +6764,7 @@ MANPAGE_MAPPING = {
  'route': 'http://man7.org/linux/man-pages/man8/route.8.html',
  'routef': 'http://man7.org/linux/man-pages/man8/routef.8.html',
  'routel': 'http://man7.org/linux/man-pages/man8/routel.8.html',
- 'rpc': 'http://man7.org/linux/man-pages/man5/rpc.5.html',
+ 'rpc': 'http://man7.org/linux/man-pages/man3/rpc.3.html',
  'rpc.gssd': 'http://man7.org/linux/man-pages/man8/rpc.gssd.8.html',
  'rpc.idmapd': 'http://man7.org/linux/man-pages/man8/rpc.idmapd.8.html',
  'rpc.mountd': 'http://man7.org/linux/man-pages/man8/rpc.mountd.8.html',
