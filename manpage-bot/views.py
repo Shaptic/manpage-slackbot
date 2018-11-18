@@ -8,8 +8,9 @@ from   pprint import pprint
 from   flask import request, jsonify
 import requests as curl
 
-from . import app, SLACK_OAUTH_TOKEN
-from .links import ERRNO_STRINGS, MANPAGE_MAPPING
+from . import app
+from .tokens import get_token
+from .links  import ERRNO_STRINGS, MANPAGE_MAPPING
 
 
 COMMAND_PATTERN = r"\bman (\w+)"
@@ -151,7 +152,7 @@ def on_app_mention(js):
         curl.post(
             "https://slack.com/api/chat.postMessage",
             headers={
-                "Authorization": "Bearer " + SLACK_OAUTH_TOKEN,
+                "Authorization": "Bearer " + get_token(js),
                 "Content-Type": "application/json",
             },
             json={
