@@ -13,7 +13,7 @@ from .tokens import get_token
 from .links  import ERRNO_STRINGS, MANPAGE_MAPPING
 
 
-COMMAND_PATTERN = r"\bman (\w+)"
+COMMAND_PATTERN = r"\bman ([-\w]+)"
 COMMAND_REGEX = re.compile(COMMAND_PATTERN, re.IGNORECASE)
 SEEN_EVENTS = []
 
