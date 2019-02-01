@@ -102,12 +102,22 @@ def on_app_mention(js):
     """
     event = js["event"]
 
-    # The only types of commands that are supported contain the pattern:
+    # The main command contains the pattern:
     #       man [function name]
     #
-    # The function name is one word, potentially with underscores. Where the
-    # actual mention of the bot occurs is irrelevant.
+    # The function name is one word, potentially with underscores or hypens.
+    # Where the actual mention of the bot occurs is irrelevant.
     matches = re.search(COMMAND_REGEX, event["text"])
+
+    # We ALSO support direct mentions with *only* the [function name], as in:
+    #       @man [function name]
+    #
+    # but to support this we need to build the regex based on our own Slack user
+    # identifier, which is in "authed_users". So:
+    if matches is None:
+        user_id = js["authed_users"][0]
+        alt_regex = re.compile("^<@%s> ([-\\w]+)$" % user_id, re.IGNORECASE)
+        matches = re.search(alt_regex, event["text"])
 
     # Respond with a message linking to the requested man page, if it exists. If
     # it doesn't, indicate that!
