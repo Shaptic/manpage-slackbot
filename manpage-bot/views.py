@@ -116,7 +116,7 @@ def on_app_mention(js):
     # identifier, which is in "authed_users". So:
     if matches is None:
         user_id = js["authed_users"][0]
-        alt_regex = re.compile("^<@%s> ([-\\w]+)$" % user_id, re.IGNORECASE)
+        alt_regex = re.compile("^<@%s> ([-\\w]+)\s*$" % user_id, re.IGNORECASE)
         matches = re.search(alt_regex, event["text"])
 
     # Respond with a message linking to the requested man page, if it exists. If
