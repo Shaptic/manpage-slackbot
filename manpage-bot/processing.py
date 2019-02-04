@@ -1,4 +1,6 @@
 import re
+import collections
+
 from pprint import pprint
 
 
@@ -10697,5 +10699,9 @@ def create_link(n, d, suffix):
     """
     return (n, f"http://man7.org/linux/man-pages/man{d}/{n}.{d}{suffix}.html")
 
-results = dict(map(lambda x: create_link(*x.groups()), MANPAGE))
-pprint(results, open("output", "w"))
+results = collections.defaultdict(list)
+for line in MANPAGE:
+    key, link = create_link(*line.groups())
+    results[key].append(link)
+
+pprint(dict(results), open("output", "w"))

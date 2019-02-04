@@ -143,21 +143,25 @@ def on_app_mention(js):
                 SEEN_EVENTS.append(js["event_id"])
                 SEEN_EVENTS = SEEN_EVENTS[-10:]
 
-            result = curl.get(url)
+            result = curl.get(url[0])
             if result.status_code == curl.codes.ok:
-                message = f"`{query}`: {url}"
+                if len(url) > 1:
+                    message = f"I found {len(url)} results for `{query}`:\n  "
+                    message += '\n  '.join(url)
+                else:
+                    message = f"`{query}`: {url[0]}"
 
-                append = ""
-                for anchor, matches in {
-                    "#RETURN_VALUE": ("return value", " rv ", "returns"),
-                    "#ERRORS": ERRNO_STRINGS + ["error", "errno"],
-                    "#NOTES": ("notes", )
-                }.items():
-                    if any(map(lambda m: event["text"].lower().find(m) != -1, matches)):
-                        append = anchor
-                        break
+                # append = ""
+                # for anchor, matches in {
+                #     "#RETURN_VALUE": ("return value", " rv ", "returns"),
+                #     "#ERRORS": ERRNO_STRINGS + ["error", "errno"],
+                #     "#NOTES": ("notes", )
+                # }.items():
+                #     if any(map(lambda m: event["text"].lower().find(m) != -1, matches)):
+                #         append = anchor
+                #         break
 
-                message += append
+                # message += append
 
         curl.post(
             "https://slack.com/api/chat.postMessage",
