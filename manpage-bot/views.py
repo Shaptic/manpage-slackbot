@@ -146,7 +146,8 @@ def on_app_mention(js):
             result = curl.get(url[0])
             if result.status_code == curl.codes.ok:
                 if len(url) > 1:
-                    message = f"I found {len(url)} results for `{query}`:\n  "
+                    message = f"I found {len(url)} results for `{query}`."
+                    message += "You probably want the first one, but here they all are:\n  "
                     message += '\n  '.join(url)
                 else:
                     message = f"`{query}`: {url[0]}"
@@ -163,19 +164,24 @@ def on_app_mention(js):
 
                 # message += append
 
+        message_json = {
+            "username": "Man Bot",
+            "icon_emoji": ":computer:",
+            "channel": event["channel"],
+            "text": message,
+            "unfurl_links": False,
+        }
+
+        # Respond within threads where appropriate.
+        if "thread_ts" in event: message_json["thread_ts"] = event["thread_ts"]
+
         curl.post(
             "https://slack.com/api/chat.postMessage",
             headers={
                 "Authorization": "Bearer " + get_token(js),
                 "Content-Type": "application/json",
             },
-            json={
-                "username": "Man Bot",
-                "icon_emoji": ":computer:",
-                "channel": event["channel"],
-                "text": message,
-                "unfurl_links": False,
-            }
+            json=message_json
         )
 
     return {"message": message}, 200
