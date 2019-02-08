@@ -2,6 +2,7 @@
 import re
 import json
 import time
+import urllib
 import functools
 from   pprint import pprint
 
@@ -108,6 +109,7 @@ def on_app_mention(js):
     # The function name is one word, potentially with underscores or hypens.
     # Where the actual mention of the bot occurs is irrelevant.
     matches = re.search(COMMAND_REGEX, event["text"])
+    message = None
 
     # We ALSO support direct mentions with *only* the [function name], as in:
     #       @man [function name]
@@ -116,7 +118,7 @@ def on_app_mention(js):
     # identifier, which is in "authed_users". So:
     if matches is None:
         user_id = js["authed_users"][0]
-        alt_regex = re.compile("^<@%s> ([-\\w]+)\s*$" % user_id, re.IGNORECASE)
+        alt_regex = re.compile(r"^<@%s> ([-\w]+)\s*$" % user_id, re.IGNORECASE)
         matches = re.search(alt_regex, event["text"])
 
     # Respond with a message linking to the requested man page, if it exists. If
@@ -124,7 +126,21 @@ def on_app_mention(js):
     #
     # https://slack.com/api/chat.postMessage
     if matches is None:
-        message = "Invalid query; use the form `man [function]` :nerd_face:"
+
+        # Try the LMGTFY pattern (just for you, Tho).
+        user_id = js["authed_users"][0]
+        LMGTFY = re.compile(r"^<@%s> ([\w\s\"'-']+)\?\s*$" % user_id, re.IGNORECASE)
+        matches = re.search(LMGTFY, event["text"])
+        if matches is not None:
+            query = matches.groups()[0]
+            print("Found query:", query)
+            arg = urllib.parse.urlencode({"q": query})
+            message = f"https://lmgtfy.com/?{arg} :troll_dance:"
+            print("Responding with", message)
+
+        # else:
+        #     message = "Invalid query; use the form `man [function]` :nerd_face:"
+
     else:
         query = matches.groups()[0]
 
@@ -146,12 +162,13 @@ def on_app_mention(js):
             result = curl.get(url[0])
             if result.status_code == curl.codes.ok:
                 if len(url) > 1:
-                    message = f"I found {len(url)} results for `{query}`."
+                    message = f"I found {len(url)} results for `{query}`. "
                     message += "You probably want the first one, but here they all are:\n  "
                     message += '\n  '.join(url)
                 else:
                     message = f"`{query}`: {url[0]}"
 
+                # TODO: Fix this for multiple results
                 # append = ""
                 # for anchor, matches in {
                 #     "#RETURN_VALUE": ("return value", " rv ", "returns"),
@@ -164,25 +181,27 @@ def on_app_mention(js):
 
                 # message += append
 
-        message_json = {
-            "username": "Man Bot",
-            "icon_emoji": ":computer:",
-            "channel": event["channel"],
-            "text": message,
-            "unfurl_links": False,
-        }
+    if not message: return {"message": ""}, 200
 
-        # Respond within threads where appropriate.
-        if "thread_ts" in event: message_json["thread_ts"] = event["thread_ts"]
+    message_json = {
+        "username": "Man Bot",
+        "icon_emoji": ":computer:",
+        "channel": event["channel"],
+        "text": message,
+        "unfurl_links": False,
+    }
 
-        curl.post(
-            "https://slack.com/api/chat.postMessage",
-            headers={
-                "Authorization": "Bearer " + get_token(js),
-                "Content-Type": "application/json",
-            },
-            json=message_json
-        )
+    # Respond within threads where appropriate.
+    if "thread_ts" in event: message_json["thread_ts"] = event["thread_ts"]
+
+    curl.post(
+        "https://slack.com/api/chat.postMessage",
+        headers={
+            "Authorization": "Bearer " + get_token(js),
+            "Content-Type": "application/json",
+        },
+        json=message_json
+    )
 
     return {"message": message}, 200
 
