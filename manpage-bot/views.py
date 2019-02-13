@@ -129,13 +129,23 @@ def on_app_mention(js):
 
         # Try the LMGTFY pattern (just for you, Tho).
         user_id = js["authed_users"][0]
-        LMGTFY = re.compile(r"^<@%s> ([\w\s\"'-']+)\?\s*$" % user_id, re.IGNORECASE)
+        LMGTFY = re.compile(r"^<@%s> ([\w\s\"'-'+,]+)\?\s*$" % user_id, re.IGNORECASE)
         matches = re.search(LMGTFY, event["text"])
         if matches is not None:
             query = matches.groups()[0]
-            print("Found query:", query)
-            arg = urllib.parse.urlencode({"q": query})
-            message = f"https://lmgtfy.com/?{arg} :troll_dance:"
+            if not query.strip():
+                message = "Tho, stop QAing me."
+
+            else:
+                print("Found query:", query)
+                arg = urllib.parse.urlencode({"q": query})
+
+                # Be nice if they are!
+                if "please" in event["text"] or "pls" in event["text"]:
+                    message = f"https://google.com/search?{arg} :smile_cat:"
+                else:
+                    message = f"https://lmgtfy.com/?{arg} :troll_dance:"
+
             print("Responding with", message)
 
         # else:
