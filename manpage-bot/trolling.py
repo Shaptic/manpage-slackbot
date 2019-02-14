@@ -1,36 +1,6 @@
 import re
 import urllib
 
-# "It appears you have a bug"
-# "Have you considered not doing that?"
-# "Have you considered making it work correctly?""
-
-# A bunch of regex for grabbing different phrases.
-# https://media1.tenor.com/images/0ea3b27f9c436ee7a0c0550c3705ca6d/tenor.gif?itemid=4771310
-TRIGGERS = {
-    "IDK": [
-        re.compile(r"i don'?t know", re.IGNORECASE),
-        re.compile(r"idk", re.IGNORECASE),
-    ],
-    "BONNIE": {
-        re.compile(r"weird bonnie error", re.IGNORECASE),
-    },
-}
-
-RESPONSES = {
-    "IDK": [
-        "have you tried knowing?",
-    ],
-    "BONNIE": [
-        "that"
-    ],
-}
-
-
-def check_troll_potential(text):
-    return None
-
-
 # Actually useful stuff.
 PIAZZA_REGEX = re.compile(r"\bpiazza\s+@(\d+)", re.IGNORECASE)
 PIZZA_REGEX  = re.compile(r":pizza:\s+@(\d+)", re.IGNORECASE)
@@ -71,3 +41,49 @@ def check_useful(text):
         matches = re.search(regex, text)
         if matches is not None:
             return handler(matches)
+
+# "It appears you have a bug"
+# "Have you considered not doing that?"
+# "Have you considered making it work correctly?"
+import random
+
+# A bunch of regex for grabbing different phrases.
+# https://media1.tenor.com/images/0ea3b27f9c436ee7a0c0550c3705ca6d/tenor.gif?itemid=4771310
+TRIGGERS = {
+    "BUG": [
+        re.compile(r"(that'?s a bug)", re.IGNORECASE),
+    ],
+    "IDK": [
+        re.compile(r"(i don'?t know)", re.IGNORECASE),
+        re.compile(r"(idk)", re.IGNORECASE),
+    ],
+    "BONNIE": [
+        re.compile(r"(weird bonnie errors?)", re.IGNORECASE),
+    ],
+}
+
+RESPONSES = {
+    "BUG": [
+        "It appears you have a bug...",
+        "Have you considered making it work correctly?",
+    ],
+    "IDK": [
+        "Have you tried knowing?",
+        "Have you considered not doing that? :jotsdown:",
+    ],
+    "BONNIE": [
+        "That looks like a really unique error nobody has encountered before :chad_troll:",
+        "Wow, it's great you found a completely unique bonnie error :wink:",
+        "Have you tried testing locally? :thinking: :take-the-test:",
+    ],
+}
+
+
+def check_troll_potential(text):
+    for phrase, regexes in TRIGGERS.items():
+        for regex in regexes:
+            matches = re.search(regex, text)
+            if matches is None:
+                continue
+
+            return random.choice(RESPONSES[phrase])

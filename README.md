@@ -8,7 +8,7 @@ it responds with the link; if it isn't, the bot will let you know. :)
 
 ### Usage ###
 > user [03:40]  
-> **@man** can I have man sem_overview, please?
+> **@man** give man sem_overview, please?
 
 > Man Bot APP [03:40]  
 > `sem_overview`: [http://man7.org/linux/man-pages/man7/sem_overview.7.html](http://man7.org/linux/man-pages/man7/sem_overview.7.html)
@@ -19,10 +19,9 @@ it responds with the link; if it isn't, the bot will let you know. :)
 > Man Bot APP [03:41]  
 > `sleep`: [man7.org/linux/man-pages/man3/sleep.3p.html](man7.org/linux/man-pages/man3/sleep.3p.html)
 
-> user [03:42]  
-> **@man** man testing123
-
-> Man Bot APP [03:42]  
-> No `man` page found for: testing123.
 
 This project was hacked together over the course of a few hours. It's licensed to all under the [WTF public license](http://www.wtfpl.net/). 
+
+There are some additional functions used exclusively for trolling and inside
+jokes in some of my Slack workspaces. You can disable them by toggling the
+`TROLLING` flag in `views.py`.
