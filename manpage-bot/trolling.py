@@ -60,6 +60,9 @@ TRIGGERS = {
     "BONNIE": [
         re.compile(r"(weird bonnie errors?)", re.IGNORECASE),
     ],
+    "VERSION": [
+        re.compile(r"^(version)$", re.IGNORECASE),
+    ],
 }
 
 RESPONSES = {
@@ -68,7 +71,7 @@ RESPONSES = {
         "Have you considered making it work correctly?",
     ],
     "IDK": [
-        "Have you tried knowing?",
+        "Have you tried knowing? :thinkspin:",
         "Have you considered not doing that? :jotsdown:",
     ],
     "BONNIE": [
@@ -76,6 +79,7 @@ RESPONSES = {
         "Wow, it's great you found a completely unique bonnie error :wink:",
         "Have you tried testing locally? :thinking: :take-the-test:",
     ],
+    "VERSION": [ "the latest one, obviously", "v4.20"]
 }
 
 

@@ -108,6 +108,22 @@ def on_app_mention(js):
     event = js["event"]
     message = None
 
+    def troll():
+        # Trolling works on direct queries only, so we check that first based on
+        # the event.
+        message = None
+        user_id = js["authed_users"][0]
+        user_id = "<@%s>" % user_id
+        if re.search("^%s\\s+" % user_id, event["text"]) is not None:
+            text = event["text"][len(user_id):].lstrip()
+            print("Checking '%s'" % text)
+
+            message = trolling.check_useful(text)
+            if message is None:
+                message = trolling.check_troll_potential(text)
+
+        return message
+
     # The main command contains the pattern:
     #       man [function name]
     #
@@ -130,46 +146,38 @@ def on_app_mention(js):
     if matches is not None:
         query = matches.groups()[0]
 
-        message = f"No `man` page found for: {query}."
-        if query in MANPAGE_MAPPING:
+        if query not in MANPAGE_MAPPING:
+            if TROLLING: message = troll()
+            if not message:
+                message = f"No `man` page found for: {query}."
+
+        else:
             url = MANPAGE_MAPPING[query]
-            result = curl.get(url[0])
-            if result.status_code == curl.codes.ok:
-                if len(url) > 1:
-                    message = f"I found {len(url)} results for `{query}`. "
-                    message += "You probably want the first one, but here they all are:\n  "
-                    message += '\n  '.join(url)
-                else:
-                    message = f"`{query}`: {url[0]}"
+            if len(url) > 1:
+                message = f"I found {len(url)} results for `{query}`. "
+                message += "You probably want the first one, but here they all are:\n  "
+                message += '\n  '.join(url)
+            else:
+                message = f"`{query}`: {url[0]}"
 
-                    # TODO: Fix this for multiple results
-                    append = ""
-                    for anchor, matches in {
-                        "#RETURN_VALUE": ("return value", " rv ", "returns"),
-                        "#ERRORS": ERRNO_STRINGS + ["error", "errno"],
-                        "#NOTES": ("notes", )
-                    }.items():
-                        if any(map(
-                            lambda m: event["text"].lower().find(m) != -1,
-                            matches)
-                        ):
-                            append = anchor
-                            break
+                # TODO: Fix this for multiple results
+                append = ""
+                for anchor, matches in {
+                    "#RETURN_VALUE": ("return value", " rv ", "returns"),
+                    "#ERRORS": ERRNO_STRINGS + ["error", "errno"],
+                    "#NOTES": ("notes", )
+                }.items():
+                    if any(map(
+                        lambda m: event["text"].lower().find(m) != -1,
+                        matches)
+                    ):
+                        append = anchor
+                        break
 
-                    message += append
+                message += append
 
     elif TROLLING:
-        # Trolling works on direct queries only, so we check that first based on
-        # the event.
-        user_id = js["authed_users"][0]
-        user_id = "<@%s>" % user_id
-        if re.search("^%s\\s+" % user_id, event["text"]) is not None:
-            text = event["text"][len(user_id):].lstrip()
-            print("Checking '%s'" % text)
-
-            message = trolling.check_useful(text)
-            if message is None:
-                message = trolling.check_troll_potential(text)
+        message = troll()
 
     if not message: return {"message": {}}, 200
 
