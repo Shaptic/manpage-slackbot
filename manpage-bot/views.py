@@ -126,17 +126,27 @@ def on_app_mention(js):
     #
     # https://slack.com/api/chat.postMessage
     if matches is None:
-
-        # Try the LMGTFY pattern (just for you, Tho).
-        user_id = js["authed_users"][0]
-        LMGTFY = re.compile(r"^<@%s> ([\w\s\"'-']+)\?\s*$" % user_id, re.IGNORECASE)
-        matches = re.search(LMGTFY, event["text"])
+        # Check for Piazza
+        PIAZZA_PATTERN = r"\bpiazza @(\d+)"
+        PIAZZA_REGEX = re.compile(PIAZZA_PATTERN, re.IGNORECASE)
+        matches = re.search(PIAZZA_REGEX, event["text"])
         if matches is not None:
             query = matches.groups()[0]
             print("Found query:", query)
             arg = urllib.parse.urlencode({"q": query})
-            message = f"https://lmgtfy.com/?{arg} :troll_dance:"
+            message = f"https://piazza.com/class/jqkdjtajmtunj?cid={arg} :pizza:"
             print("Responding with", message)
+        else:
+            # Try the LMGTFY pattern (just for you, Tho).
+            user_id = js["authed_users"][0]
+            LMGTFY = re.compile(r"^<@%s> ([\w\s\"'-']+)\?\s*$" % user_id, re.IGNORECASE)
+            matches = re.search(LMGTFY, event["text"])
+            if matches is not None:
+                query = matches.groups()[0]
+                print("Found query:", query)
+                arg = urllib.parse.urlencode({"q": query})
+                message = f"https://lmgtfy.com/?{arg} :troll_dance:"
+                print("Responding with", message)
 
         # else:
         #     message = "Invalid query; use the form `man [function]` :nerd_face:"
