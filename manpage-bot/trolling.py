@@ -53,12 +53,15 @@ TRIGGERS = {
     "BUG": [
         re.compile(r"(that'?s a bug)", re.IGNORECASE),
     ],
+    "MACHINE": [
+        re.compile(r"works on (\w+) (machine|box|laptop|env|pc|mac)", re.IGNORECASE),
+    ],
     "IDK": [
         re.compile(r"(i don'?t know)", re.IGNORECASE),
         re.compile(r"(idk)", re.IGNORECASE),
     ],
     "BONNIE": [
-        re.compile(r"(weird bonnie errors?)", re.IGNORECASE),
+        re.compile(r"(weird|strange) bonnie errors?", re.IGNORECASE),
     ],
     "VERSION": [
         re.compile(r"^(version)$", re.IGNORECASE),
@@ -69,17 +72,21 @@ RESPONSES = {
     "BUG": [
         "It appears you have a bug...",
         "Have you considered making it work correctly?",
+        "Have you considered not doing that? :jotsdown:",
+    ],
+    "MACHINE": [
+        "iT wOrKs On mY mAcHiNe",
+        "next time, submit your machine",
     ],
     "IDK": [
         "Have you tried knowing? :thinkspin:",
-        "Have you considered not doing that? :jotsdown:",
     ],
     "BONNIE": [
         "That looks like a really unique error nobody has encountered before :chad_troll:",
         "Wow, it's great you found a completely unique bonnie error :wink:",
         "Have you tried testing locally? :thinking: :take-the-test:",
     ],
-    "VERSION": [ "the latest one, obviously", "v4.20"]
+    "VERSION": [ "the latest one, obviously", "vCool", "v4.20"]
 }
 
 
