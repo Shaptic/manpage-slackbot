@@ -2,8 +2,8 @@ import re
 import urllib
 
 # Actually useful stuff.
-PIAZZA_REGEX = re.compile(r"\bpiazza\s+@(\d+)", re.IGNORECASE)
-PIZZA_REGEX  = re.compile(r":pizza:\s+@(\d+)", re.IGNORECASE)
+PIAZZA_REGEX = re.compile(r"\bpiazza\s+@?(\d+)", re.IGNORECASE)
+PIZZA_REGEX  = re.compile(r":pia?zza:\s+@?(\d+)", re.IGNORECASE)
 LMGTFY_REGEX = re.compile(r"^([\w\s\"'-']+)\?\s*$", re.IGNORECASE)
 
 def check_piazza(matches):
@@ -16,8 +16,8 @@ def check_lmgtfy(matches):
 
     # Respect politeness.
     url, icon = "lmgtfy.com/", ":troll_dance:"
-    if "pls" in query or "please" in query:
-        query = query.replace("please", "").replace("pls", "")
+    if "pls" in query or "plz" in query or "please" in query:
+        query = query.replace("please", "").replace("pls", "").replace("plz", "")
         url = "google.com/search"
         icon = ":smile_cat:"
 
