@@ -8,7 +8,7 @@ LMGTFY_REGEX = re.compile(r"^([\w\s\"'-']+)\?\s*$", re.IGNORECASE)
 
 def check_piazza(matches):
     query = matches.groups()[0]
-    message = f"https://piazza.com/class/jqkdjtajmtunj?cid={query} :pizza:"
+    message = f"https://piazza.com/class/jzhovpeq3091pk?cid={query} :pizza:"
     return message
 
 def check_lmgtfy(matches):
